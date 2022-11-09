@@ -3,6 +3,7 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+const axios = require('axios');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -42,12 +43,51 @@ app.get('/form', function(req, res) {
     res.render('form');
 });
 
+
+const http = require('https');
+//const url = "https://jsonplaceholder.typicode.com/posts";
+//const url = "https://reqres.in/api/users"
+const url = "https://reqres.in/api/users?page="
+
+
+function parseResult(posts, res){
+	var firstName = posts.toString();
+	console.log("data to parse: " + posts.length);
+	//open submitted.ejs after the user has submitted the form
+	res.render('submitted', {output: firstName, output2: "test"});
+return;
+}
+
+async function doGetRequest(urllokal) {
+
+  let res = await axios.get(urllokal);
+
+  let data = res.data;
+//  console.log(data);
+  console.log(data.data);
+  return data.data
+}
+
 app.post('/', urlencodedParser, function(req, res) {
     //retrieve first and lastname
-    var firstName = req.body.firstName;
-    var lastName = req.body.lastName;
-    //open submitted.ejs after the user has submitted the form
-    res.render('submitted', {output: req.body.firstName});
+
+	(async()=>{
+	    let result = "";
+		let resultsum = ""
+		let page = 1;
+		let urlloop = url+page;
+		console.log("urlloop " + urlloop);	
+	    result = await doGetRequest(urlloop);
+		resultsum = JSON.stringify(result);
+		page = page + 1;
+		urlloop = url+page;
+		console.log("urlloop2 " + urlloop);	
+	    result = await doGetRequest(urlloop);
+		resultsum = resultsum + JSON.stringify(result);
+	    console.log('>>>>>>>>>>> result', resultsum);
+	   	parseResult(resultsum, res)
+	})();
+
 });
 
 // catch 404 and forward to error handler
