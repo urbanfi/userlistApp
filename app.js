@@ -51,10 +51,31 @@ const url = "https://reqres.in/api/users?page="
 
 
 function parseResult(posts, res){
-	var firstName = posts.toString();
+	var firstName = JSON.stringify(posts);
 	console.log("data to parse: " + posts.length);
+	let html = "";
+	for (let item of posts) {
+
+	  for (let key of item) {
+		html += '<p>';
+	    console.log("key: " + JSON.stringify(key));
+		html += '<h1>' + "This is: " + JSON.stringify(key.first_name).replace(/"/g, '') + " " + JSON.stringify(key.last_name).replace(/"/g, '')+'</h1>';
+		html += '<br>' + "<img src=" + JSON.stringify(key.avatar) + "alt=\"Avatar\" >" + '</br>';
+		html += '<br>' + "email: " + JSON.stringify(key.email).replace(/"/g, '') +'</br>';
+		html += '</p>';
+	  }
+
+	}
 	//open submitted.ejs after the user has submitted the form
-	res.render('submitted', {output: firstName, output2: "test"});
+
+//	try {
+//	  var userlist = JSON.parse(posts); // this is how you parse a string into JSON 
+//	} catch (ex) {
+//	  console.error(ex);
+//	}
+//	res.render('submitted', {output: html, output2: "test"});
+    res.set('Content-Type', 'text/html')
+	res.send(html);
 return;
 }
 
@@ -73,17 +94,24 @@ app.post('/', urlencodedParser, function(req, res) {
 
 	(async()=>{
 	    let result = "";
-		let resultsum = ""
+		let resultsum = []
 		let page = 1;
-		let urlloop = url+page;
-		console.log("urlloop " + urlloop);	
-	    result = await doGetRequest(urlloop);
-		resultsum = JSON.stringify(result);
-		page = page + 1;
-		urlloop = url+page;
-		console.log("urlloop2 " + urlloop);	
-	    result = await doGetRequest(urlloop);
-		resultsum = resultsum + JSON.stringify(result);
+		let currentpage = "";
+		while (true) 
+		{ 
+		    currentpage = url+page;
+			console.log("currentpage " + currentpage);	
+			result = await doGetRequest(currentpage);
+			if (result == '') {
+				console.log("end of data");
+				break;
+			}
+			//resultsum = resultsum + JSON.stringify(result);
+			console.log('>>>>>>>>>>> resultsum', resultsum);
+			resultsum.push(result);
+			console.log('>>>>>>>>>>> resultsum2', resultsum);
+			page = page + 1;
+		}
 	    console.log('>>>>>>>>>>> result', resultsum);
 	   	parseResult(resultsum, res)
 	})();
