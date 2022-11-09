@@ -7,11 +7,16 @@ var logger = require('morgan');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 
+var bodyParser = require('body-parser');
+var urlencodedParser = bodyParser.urlencoded({ extended: false});
+
 var app = express();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
+// Set HTML engine**
+app.engine('html', require('ejs').renderFile);
 
 app.use(logger('dev'));
 app.use(express.json());
@@ -21,6 +26,29 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+
+//set directory
+app.set('views', __dirname + '/views');
+//static folder
+app.use(express.static('staticfolder'));
+
+app.get('/', function(req, res) {
+    //open form.ejs from the views directory
+    res.render('form');
+});
+
+app.get('/form', function(req, res) {
+    //open form.ejs from the views directory
+    res.render('form');
+});
+
+app.post('/', urlencodedParser, function(req, res) {
+    //retrieve first and lastname
+    var firstName = req.body.firstName;
+    var lastName = req.body.lastName;
+    //open submitted.ejs after the user has submitted the form
+    res.render('submitted', {output: req.body.firstName});
+});
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -37,5 +65,7 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
+
+
 
 module.exports = app;
